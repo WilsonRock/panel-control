@@ -9,6 +9,7 @@ use Illuminate\Support\Facades\Blade;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\ServiceProvider;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Routing\UrlGenerator;
 
 class AppServiceProvider extends ServiceProvider
 {
@@ -17,14 +18,12 @@ class AppServiceProvider extends ServiceProvider
      *
      * @return void
      */
-    public function boot()
-    {
-        Blade::component('shared._card', 'card');
-
-        Paginator::useBootstrap();
-
-        $this->app->bind(LengthAwarePaginator::class, \App\LengthAwarePaginator::class);
-    }
+	public function boot(UrlGenerator $url)
+	{
+	   if (env('REDIRECT_HTTPS')) {
+		   $url->formatScheme('https://');
+	   }
+	}
 
     /**
      * Register any application services.
@@ -33,8 +32,8 @@ class AppServiceProvider extends ServiceProvider
      */
     public function register()
     {
-        $this->app->bind(Sortable::class, function ($app) {
-            return new Sortable(request()->url());
-        });
+		if (env('REDIRECT_HTTPS')) {
+		   $this->app['request']->server->set('HTTPS', true);
+	    }
     }
 }
